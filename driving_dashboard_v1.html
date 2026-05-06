@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>行車距離 Dashboard V1</title>
+  <style>
+    :root {
+      --bg: #f5f7fa;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --primary: #2563eb;
+      --good: #16a34a;
+      --warn: #ca8a04;
+      --bad: #dc2626;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    header {
+      padding: 20px 16px 8px;
+      max-width: 980px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 24px;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    main {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 12px 16px 32px;
+    }
+
+    .panel, .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 6px 20px rgba(15, 23, 42, 0.06);
+    }
+
+    .panel {
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 11px 14px;
+      background: var(--primary);
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    button.secondary {
+      background: #111827;
+    }
+
+    button:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+    }
+
+    input {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      min-width: 280px;
+      font-size: 14px;
+    }
+
+    .status {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      padding: 16px;
+    }
+
+    .card h2 {
+      margin: 0 0 4px;
+      font-size: 20px;
+    }
+
+    .address {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+      min-height: 38px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 14px;
+      font-size: 14px;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 10px 8px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      background: #e5e7eb;
+      color: #374151;
+    }
+
+    .fastest {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    a.navlink {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .note {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.55;
+      margin-top: 14px;
+    }
+
+    .error {
+      color: var(--bad);
+      font-weight: 600;
+    }
+
+    .small {
+      font-size: 12px;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>行車距離 Dashboard V1</h1>
+    <div class="subtitle">一次過查看目前位置前往指定地址的行車距離及時間。過海路線會分別嘗試經東隧、紅隧及西隧。</div>
+  </header>
+
+  <main>
+    <section class="panel">
+      <div class="row">
+        <button id="locateBtn">取得目前位置並計算</button>
+        <button id="homeBtn" class="secondary">以「住宅」作起點計算</button>
+        <input id="apiKey" type="password" placeholder="貼上 Google Maps API Key（可選：亦可寫入程式內）" />
+      </div>
+      <div id="status" class="status">尚未開始。第一次使用時，瀏覽器會詢問是否允許取得位置。</div>
+      <div class="note">
+        使用說明：如要顯示即時行車時間，請在 Google Cloud 啟用 <strong>Routes API</strong>，然後貼上 API Key。沒有 API Key 時，仍可使用每一行的「導航」連結打開 Google Maps。
+      </div>
+    </section>
+
+    <section id="cards" class="grid"></section>
+  </main>
+
+  <script>
+    // ====== V1 設定區 ======
+    const GOOGLE_API_KEY_HERE = ""; // 如想固定 API Key，可貼在這對引號內。
+
+    const destinations = [
+      {
+        name: "竹園",
+        address: "竹園竹園道竹園南邨貴園樓地下111-116室",
+      },
+      {
+        name: "PPI",
+        address: "尖沙咀柯士甸道81號",
+      },
+      {
+        name: "住宅",
+        address: "七姊妹繼園臺7-8號",
+      }
+    ];
+
+    const tunnels = [
+      { key: "normal", label: "一般推薦", waypoint: null },
+      { key: "ehc", label: "經東隧", waypoint: "Eastern Harbour Crossing, Hong Kong" },
+      { key: "cht", label: "經紅隧", waypoint: "Cross-Harbour Tunnel, Hong Kong" },
+      { key: "whc", label: "經西隧", waypoint: "Western Harbour Crossing, Hong Kong" }
+    ];
+
+    const homeAddress = "七姊妹繼園臺7-8號";
+
+    const cardsEl = document.getElementById("cards");
+    const statusEl = document.getElementById("status");
+    const locateBtn = document.getElementById("locateBtn");
+    const homeBtn = document.getElementById("homeBtn");
+    const apiKeyInput = document.getElementById("apiKey");
+
+    function getApiKey() {
+      return apiKeyInput.value.trim() || GOOGLE_API_KEY_HERE.trim();
+    }
+
+    function setStatus(message, isError = false) {
+      statusEl.innerHTML = isError ? `<span class="error">${message}</span>` : message;
+    }
+
+    function originToText(origin) {
+      if (typeof origin === "string") return origin;
+      return `${origin.lat},${origin.lng}`;
+    }
+
+    function googleMapsUrl(origin, destination, waypoint = null) {
+      const base = "https://www.google.com/maps/dir/?api=1";
+      const params = new URLSearchParams({
+        origin: originToText(origin),
+        destination,
+        travelmode: "driving"
+      });
+      if (waypoint) params.set("waypoints", waypoint);
+      return `${base}&${params.toString()}`;
+    }
+
+    function renderInitialCards() {
+      cardsEl.innerHTML = destinations.map((dest, i) => `
+        <article class="card" id="card-${i}">
+          <h2>${dest.name}</h2>
+          <div class="address">${dest.address}</div>
+          <table>
+            <thead>
+              <tr>
+                <th>路線</th>
+                <th>距離</th>
+                <th>時間</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="rows-${i}">
+              ${tunnels.map(t => `
+                <tr data-route="${t.key}">
+                  <td>${t.label}</td>
+                  <td class="distance">—</td>
+                  <td class="duration">—</td>
+                  <td><span class="small">未計算</span></td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+          <div class="note" id="best-${i}">最快路線：—</div>
+        </article>
+      `).join("");
+    }
+
+    function updateRow(destIndex, routeKey, data, origin) {
+      const row = document.querySelector(`#rows-${destIndex} tr[data-route="${routeKey}"]`);
+      if (!row) return;
+      row.querySelector(".distance").textContent = data.distance || "—";
+      row.querySelector(".duration").textContent = data.duration || "—";
+
+      const tunnel = tunnels.find(t => t.key === routeKey);
+      const url = googleMapsUrl(origin, destinations[destIndex].address, tunnel?.waypoint || null);
+      row.children[3].innerHTML = `<a class="navlink" target="_blank" rel="noopener" href="${url}">導航</a>`;
+      row.dataset.seconds = data.seconds || "";
+    }
+
+    function markFastest(destIndex) {
+      const rows = [...document.querySelectorAll(`#rows-${destIndex} tr`)];
+      rows.forEach(r => r.classList.remove("best-row"));
+      rows.forEach(r => {
+        const firstCell = r.children[0];
+        firstCell.innerHTML = firstCell.textContent.replace(" 最快", "");
+      });
+
+      const validRows = rows.filter(r => Number(r.dataset.seconds) > 0);
+      if (!validRows.length) return;
+      validRows.sort((a, b) => Number(a.dataset.seconds) - Number(b.dataset.seconds));
+      const best = validRows[0];
+      const label = best.children[0].textContent;
+      best.children[0].innerHTML = `${label} <span class="badge fastest">最快</span>`;
+      document.getElementById(`best-${destIndex}`).textContent = `最快路線：${label}`;
+    }
+
+    async function computeRoute(origin, destination, waypoint, apiKey) {
+      const intermediates = waypoint ? [{ address: waypoint }] : [];
+
+      const body = {
+        origin: typeof origin === "string"
+          ? { address: origin }
+          : { location: { latLng: { latitude: origin.lat, longitude: origin.lng } } },
+        destination: { address: destination },
+        intermediates,
+        travelMode: "DRIVE",
+        routingPreference: "TRAFFIC_AWARE",
+        computeAlternativeRoutes: false,
+        units: "METRIC",
+        languageCode: "zh-HK",
+        regionCode: "HK"
+      };
+
+      const res = await fetch("https://routes.googleapis.com/directions/v2:computeRoutes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Goog-Api-Key": apiKey,
+          "X-Goog-FieldMask": "routes.duration,routes.distanceMeters"
+        },
+        body: JSON.stringify(body)
+      });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`Google Routes API 錯誤：${res.status} ${errText}`);
+      }
+
+      const json = await res.json();
+      const route = json.routes?.[0];
+      if (!route) return { distance: "無路線", duration: "無資料", seconds: 0 };
+
+      const meters = route.distanceMeters || 0;
+      const seconds = parseDurationSeconds(route.duration || "0s");
+      return {
+        distance: meters ? `${(meters / 1000).toFixed(1)} km` : "—",
+        duration: seconds ? formatDuration(seconds) : "—",
+        seconds
+      };
+    }
+
+    function parseDurationSeconds(duration) {
+      // Google duration format usually like "1234s"
+      if (!duration) return 0;
+      return Number(String(duration).replace("s", "")) || 0;
+    }
+
+    function formatDuration(seconds) {
+      const minutes = Math.round(seconds / 60);
+      if (minutes < 60) return `${minutes} 分鐘`;
+      const h = Math.floor(minutes / 60);
+      const m = minutes % 60;
+      return `${h}小時${m ? ` ${m}分鐘` : ""}`;
+    }
+
+    async function calculateAll(origin) {
+      renderInitialCards();
+      const apiKey = getApiKey();
+
+      if (!apiKey) {
+        setStatus("未有 API Key：已產生 Google Maps 導航連結，但不會在頁面內顯示即時距離及時間。", true);
+        destinations.forEach((dest, destIndex) => {
+          tunnels.forEach(t => {
+            updateRow(destIndex, t.key, { distance: "需 API Key", duration: "需 API Key", seconds: 0 }, origin);
+          });
+        });
+        return;
+      }
+
+      locateBtn.disabled = true;
+      homeBtn.disabled = true;
+      setStatus("正在計算三個目的地及各隧道路線，請稍候……");
+
+      try {
+        for (let i = 0; i < destinations.length; i++) {
+          for (const tunnel of tunnels) {
+            const data = await computeRoute(origin, destinations[i].address, tunnel.waypoint, apiKey);
+            updateRow(i, tunnel.key, data, origin);
+          }
+          markFastest(i);
+        }
+        setStatus(`完成。最後更新：${new Date().toLocaleString("zh-HK")}`);
+      } catch (err) {
+        console.error(err);
+        setStatus(`計算失敗：${err.message}`, true);
+      } finally {
+        locateBtn.disabled = false;
+        homeBtn.disabled = false;
+      }
+    }
+
+    locateBtn.addEventListener("click", () => {
+      if (!navigator.geolocation) {
+        setStatus("你的瀏覽器不支援定位功能。", true);
+        return;
+      }
+      setStatus("正在取得目前位置……");
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          const origin = {
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude
+          };
+          calculateAll(origin);
+        },
+        err => {
+          setStatus(`無法取得目前位置：${err.message}`, true);
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+      );
+    });
+
+    homeBtn.addEventListener("click", () => {
+      calculateAll(homeAddress);
+    });
+
+    renderInitialCards();
+  </script>
+</body>
+</html>
