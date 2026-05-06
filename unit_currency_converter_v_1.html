@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>常用單位轉換器 V1</title>
+  <style>
+    :root {
+      --bg: #f5f7f9;
+      --card: #ffffff;
+      --text: #1f2933;
+      --muted: #6b7280;
+      --line: #d9dee5;
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --soft: #eff6ff;
+      --danger: #b91c1c;
+      --ok: #047857;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+      background: linear-gradient(180deg, #eef4ff 0%, var(--bg) 36%);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    .app {
+      max-width: 980px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-end;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 30px;
+      letter-spacing: -0.03em;
+    }
+
+    .version {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255,255,255,.75);
+      padding: 7px 12px;
+      color: var(--muted);
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .subtitle {
+      margin: 8px 0 0;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: #e7ecf3;
+      padding: 5px;
+      border-radius: 16px;
+      margin-bottom: 18px;
+      gap: 5px;
+    }
+
+    .tab {
+      border: 0;
+      padding: 13px 12px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      color: var(--muted);
+      background: transparent;
+    }
+
+    .tab.active {
+      background: var(--card);
+      color: var(--primary);
+      box-shadow: 0 6px 18px rgba(31, 41, 55, .08);
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(217, 222, 229, .9);
+      border-radius: 24px;
+      padding: 22px;
+      box-shadow: 0 18px 45px rgba(31, 41, 55, .08);
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      margin: 0 0 16px;
+      font-size: 20px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.15fr .9fr .9fr;
+      gap: 14px;
+      align-items: end;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #374151;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    input, select {
+      width: 100%;
+      min-height: 46px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      padding: 10px 12px;
+      font-size: 16px;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, .10);
+    }
+
+    .result-box {
+      margin-top: 18px;
+      border-radius: 18px;
+      background: var(--soft);
+      padding: 20px;
+      border: 1px solid #dbeafe;
+    }
+
+    .result-label {
+      margin: 0 0 6px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .result-value {
+      margin: 0;
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      word-break: break-word;
+    }
+
+    .small-note {
+      margin: 10px 0 0;
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 13px;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    button.action {
+      border: 0;
+      border-radius: 13px;
+      min-height: 44px;
+      padding: 10px 16px;
+      font-weight: 800;
+      cursor: pointer;
+      background: var(--primary);
+      color: #fff;
+    }
+
+    button.action.secondary {
+      background: #eef2f7;
+      color: #263445;
+    }
+
+    button.action:hover { background: var(--primary-dark); }
+    button.action.secondary:hover { background: #e1e7ef; }
+
+    .currency-mode {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 9px 13px;
+      cursor: pointer;
+      user-select: none;
+      color: #374151;
+      background: #fff;
+    }
+
+    .pill input {
+      width: auto;
+      min-height: auto;
+      accent-color: var(--primary);
+    }
+
+    .status {
+      margin-top: 12px;
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .status.ok { color: var(--ok); }
+    .status.error { color: var(--danger); }
+
+    .history {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .history button {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 999px;
+      padding: 8px 11px;
+      cursor: pointer;
+      color: #374151;
+    }
+
+    .hidden { display: none; }
+
+    footer {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+      margin-top: 14px;
+      padding: 0 4px;
+    }
+
+    @media (max-width: 760px) {
+      body { padding: 16px; }
+      header { display: block; }
+      .version { margin-top: 12px; }
+      .grid, .grid-2 { grid-template-columns: 1fr; }
+      .result-value { font-size: 28px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <div>
+        <h1>常用單位轉換器</h1>
+        <p class="subtitle">長度及貨幣轉換工具，支援記住上次貨幣組合、自動匯率及自訂匯率。</p>
+      </div>
+      <span class="version">版本：V1</span>
+    </header>
+
+    <nav class="tabs" aria-label="主要功能">
+      <button class="tab active" data-tab="length">長度轉換</button>
+      <button class="tab" data-tab="currency">貨幣轉換</button>
+    </nav>
+
+    <section id="lengthPanel" class="card">
+      <h2 class="section-title">長度轉換</h2>
+      <div class="grid">
+        <div>
+          <label for="lengthAmount">數值</label>
+          <input id="lengthAmount" type="number" inputmode="decimal" value="1" min="0" step="any" />
+        </div>
+        <div>
+          <label for="lengthFrom">由</label>
+          <select id="lengthFrom"></select>
+        </div>
+        <div>
+          <label for="lengthTo">轉換至</label>
+          <select id="lengthTo"></select>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="action secondary" id="swapLength">對調單位</button>
+        <button class="action secondary" id="clearLength">清除</button>
+      </div>
+      <div class="result-box">
+        <p class="result-label">轉換結果</p>
+        <p class="result-value" id="lengthResult">—</p>
+        <p class="small-note" id="lengthFormula">—</p>
+      </div>
+    </section>
+
+    <section id="currencyPanel" class="card hidden">
+      <h2 class="section-title">貨幣轉換</h2>
+
+      <div class="currency-mode" role="radiogroup" aria-label="匯率模式">
+        <label class="pill"><input type="radio" name="rateMode" value="auto" checked /> 自動參考網上匯率</label>
+        <label class="pill"><input type="radio" name="rateMode" value="manual" /> 自訂匯率</label>
+      </div>
+
+      <div class="grid">
+        <div>
+          <label for="currencyAmount">金額</label>
+          <input id="currencyAmount" type="number" inputmode="decimal" value="100" min="0" step="any" />
+        </div>
+        <div>
+          <label for="currencyFrom">由</label>
+          <select id="currencyFrom"></select>
+        </div>
+        <div>
+          <label for="currencyTo">轉換至</label>
+          <select id="currencyTo"></select>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top:14px;">
+        <div id="manualRateWrap" class="hidden">
+          <label for="manualRate">自訂匯率：1 個來源貨幣 = ? 目標貨幣</label>
+          <input id="manualRate" type="number" inputmode="decimal" min="0" step="any" placeholder="例如：7.82" />
+        </div>
+        <div>
+          <label for="rateSource">自動匯率來源</label>
+          <select id="rateSource">
+            <option value="frankfurter">Frankfurter.app / ECB 參考匯率</option>
+            <option value="exchangerate">open.er-api.com 公開匯率</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="action" id="convertCurrency">更新匯率並轉換</button>
+        <button class="action secondary" id="swapCurrency">對調貨幣</button>
+        <button class="action secondary" id="clearCurrency">清除</button>
+      </div>
+
+      <div class="result-box">
+        <p class="result-label">轉換結果</p>
+        <p class="result-value" id="currencyResult">—</p>
+        <p class="small-note" id="currencyFormula">—</p>
+      </div>
+
+      <div id="currencyStatus" class="status">系統會記住你上次選擇的貨幣、匯率模式及自訂匯率。</div>
+      <div id="historyWrap" class="small-note hidden">
+        最近使用：
+        <div class="history" id="currencyHistory"></div>
+      </div>
+    </section>
+
+    <footer>
+      備註：Google 搜尋顯示的 exchange rate 本身沒有免費官方前端 API。此 V1 的「自動匯率」使用公開網上匯率 API 作即時參考；如需完全跟從 Google 顯示的匯率，可在「自訂匯率」輸入 Google 查到的數值。
+    </footer>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "common_converter_v1_settings";
+
+    const lengthUnits = [
+      { code: "mm", name: "毫米 mm", meter: 0.001 },
+      { code: "cm", name: "厘米 cm", meter: 0.01 },
+      { code: "m", name: "米 m", meter: 1 },
+      { code: "km", name: "公里 km", meter: 1000 },
+      { code: "in", name: "吋 inch", meter: 0.0254 },
+      { code: "ft", name: "呎 foot", meter: 0.3048 },
+      { code: "yd", name: "碼 yard", meter: 0.9144 },
+      { code: "mi", name: "英里 mile", meter: 1609.344 },
+      { code: "nmi", name: "海里 nautical mile", meter: 1852 },
+      { code: "chi_ft", name: "香港常用：呎", meter: 0.3048 }
+    ];
+
+    const currencies = [
+      ["HKD", "港元 HKD"], ["USD", "美元 USD"], ["CNY", "人民幣 CNY"], ["TWD", "新台幣 TWD"],
+      ["JPY", "日圓 JPY"], ["AUD", "澳元 AUD"], ["EUR", "歐元 EUR"], ["GBP", "英鎊 GBP"],
+      ["CAD", "加元 CAD"], ["NZD", "紐元 NZD"], ["SGD", "新加坡元 SGD"], ["KRW", "韓圜 KRW"],
+      ["THB", "泰銖 THB"], ["MYR", "馬幣 MYR"], ["PHP", "菲律賓披索 PHP"], ["IDR", "印尼盾 IDR"],
+      ["CHF", "瑞士法郎 CHF"], ["SEK", "瑞典克朗 SEK"], ["NOK", "挪威克朗 NOK"], ["DKK", "丹麥克朗 DKK"],
+      ["AED", "阿聯酋迪拉姆 AED"], ["SAR", "沙特里亞爾 SAR"]
+    ];
+
+    const $ = id => document.getElementById(id);
+    const fmt = new Intl.NumberFormat("zh-HK", { maximumFractionDigits: 8 });
+    const moneyFmt = code => new Intl.NumberFormat("zh-HK", { style: "currency", currency: code, maximumFractionDigits: 4 });
+
+    function optionList(select, items, selected) {
+      select.innerHTML = "";
+      items.forEach(item => {
+        const opt = document.createElement("option");
+        if (Array.isArray(item)) {
+          opt.value = item[0];
+          opt.textContent = item[1];
+        } else {
+          opt.value = item.code;
+          opt.textContent = item.name;
+        }
+        if (opt.value === selected) opt.selected = true;
+        select.appendChild(opt);
+      });
+    }
+
+    function loadSettings() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
+      catch { return {}; }
+    }
+
+    function saveSettings(patch) {
+      const current = loadSettings();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...current, ...patch }));
+    }
+
+    function formatNumber(n) {
+      if (!isFinite(n)) return "—";
+      if (Math.abs(n) >= 1e9 || (Math.abs(n) > 0 && Math.abs(n) < 0.000001)) return n.toExponential(6);
+      return fmt.format(Number(n.toFixed(10)));
+    }
+
+    function convertLength() {
+      const amount = parseFloat($("lengthAmount").value);
+      const from = lengthUnits.find(u => u.code === $("lengthFrom").value);
+      const to = lengthUnits.find(u => u.code === $("lengthTo").value);
+      if (!isFinite(amount) || !from || !to) {
+        $("lengthResult").textContent = "—";
+        $("lengthFormula").textContent = "請輸入有效數值。";
+        return;
+      }
+      const result = amount * from.meter / to.meter;
+      $("lengthResult").textContent = `${formatNumber(result)} ${to.name}`;
+      $("lengthFormula").textContent = `${formatNumber(amount)} ${from.name} = ${formatNumber(amount * from.meter)} 米 = ${formatNumber(result)} ${to.name}`;
+    }
+
+    function setCurrencyStatus(text, type = "") {
+      const el = $("currencyStatus");
+      el.textContent = text;
+      el.className = `status ${type}`.trim();
+    }
+
+    function getRateMode() {
+      return document.querySelector('input[name="rateMode"]:checked').value;
+    }
+
+    function getManualRate() {
+      const rate = parseFloat($("manualRate").value);
+      return isFinite(rate) && rate > 0 ? rate : null;
+    }
+
+    async function fetchRate(from, to) {
+      if (from === to) return { rate: 1, source: "same-currency" };
+
+      const source = $("rateSource").value;
+      if (source === "frankfurter") {
+        const url = `https://api.frankfurter.app/latest?amount=1&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("Frankfurter 匯率服務暫時未能回應。可改用另一來源或自訂匯率。");
+        const data = await res.json();
+        if (!data.rates || !data.rates[to]) throw new Error("此貨幣組合未有自動匯率。請改用另一來源或自訂匯率。");
+        return { rate: data.rates[to], source: `Frankfurter.app，日期：${data.date || "latest"}` };
+      }
+
+      const url = `https://open.er-api.com/v6/latest/${encodeURIComponent(from)}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("公開匯率服務暫時未能回應。請稍後再試或使用自訂匯率。");
+      const data = await res.json();
+      if (!data.rates || !data.rates[to]) throw new Error("此貨幣組合未有自動匯率。請使用自訂匯率。");
+      return { rate: data.rates[to], source: `open.er-api.com，更新時間：${data.time_last_update_utc || "latest"}` };
+    }
+
+    function updateHistory(from, to) {
+      const pair = `${from}-${to}`;
+      const settings = loadSettings();
+      const history = [pair, ...(settings.currencyHistory || []).filter(x => x !== pair)].slice(0, 6);
+      saveSettings({ currencyHistory: history });
+      renderHistory();
+    }
+
+    function renderHistory() {
+      const settings = loadSettings();
+      const history = settings.currencyHistory || [];
+      const wrap = $("historyWrap");
+      const box = $("currencyHistory");
+      box.innerHTML = "";
+      if (!history.length) {
+        wrap.classList.add("hidden");
+        return;
+      }
+      wrap.classList.remove("hidden");
+      history.forEach(pair => {
+        const [from, to] = pair.split("-");
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.textContent = `${from} → ${to}`;
+        btn.addEventListener("click", () => {
+          $("currencyFrom").value = from;
+          $("currencyTo").value = to;
+          convertCurrency();
+        });
+        box.appendChild(btn);
+      });
+    }
+
+    async function convertCurrency() {
+      const amount = parseFloat($("currencyAmount").value);
+      const from = $("currencyFrom").value;
+      const to = $("currencyTo").value;
+      const mode = getRateMode();
+
+      saveSettings({
+        currencyAmount: $("currencyAmount").value,
+        currencyFrom: from,
+        currencyTo: to,
+        rateMode: mode,
+        manualRate: $("manualRate").value,
+        rateSource: $("rateSource").value
+      });
+
+      if (!isFinite(amount)) {
+        $("currencyResult").textContent = "—";
+        $("currencyFormula").textContent = "請輸入有效金額。";
+        return;
+      }
+
+      try {
+        setCurrencyStatus(mode === "auto" ? "正在讀取網上參考匯率……" : "使用自訂匯率計算。");
+        let rateInfo;
+        if (mode === "manual") {
+          const rate = getManualRate();
+          if (!rate) throw new Error("請輸入有效的自訂匯率。例：1 USD = 7.82 HKD，便輸入 7.82。 ");
+          rateInfo = { rate, source: "自訂匯率" };
+        } else {
+          rateInfo = await fetchRate(from, to);
+        }
+
+        const result = amount * rateInfo.rate;
+        $("currencyResult").textContent = `${moneyFmt(to).format(result)} ${to}`;
+        $("currencyFormula").textContent = `${moneyFmt(from).format(amount)} ${from} × ${formatNumber(rateInfo.rate)} = ${moneyFmt(to).format(result)} ${to}`;
+        setCurrencyStatus(`匯率：1 ${from} = ${formatNumber(rateInfo.rate)} ${to}。來源：${rateInfo.source}`, "ok");
+        updateHistory(from, to);
+      } catch (err) {
+        $("currencyResult").textContent = "—";
+        $("currencyFormula").textContent = "未能完成轉換。";
+        setCurrencyStatus(err.message || "匯率讀取失敗，請使用自訂匯率。", "error");
+      }
+    }
+
+    function initTabs() {
+      document.querySelectorAll(".tab").forEach(btn => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll(".tab").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          const tab = btn.dataset.tab;
+          $("lengthPanel").classList.toggle("hidden", tab !== "length");
+          $("currencyPanel").classList.toggle("hidden", tab !== "currency");
+        });
+      });
+    }
+
+    function initLength() {
+      optionList($("lengthFrom"), lengthUnits, "m");
+      optionList($("lengthTo"), lengthUnits, "ft");
+      ["lengthAmount", "lengthFrom", "lengthTo"].forEach(id => $(id).addEventListener("input", convertLength));
+      ["lengthFrom", "lengthTo"].forEach(id => $(id).addEventListener("change", convertLength));
+      $("swapLength").addEventListener("click", () => {
+        const from = $("lengthFrom").value;
+        $("lengthFrom").value = $("lengthTo").value;
+        $("lengthTo").value = from;
+        convertLength();
+      });
+      $("clearLength").addEventListener("click", () => {
+        $("lengthAmount").value = "";
+        convertLength();
+      });
+      convertLength();
+    }
+
+    function initCurrency() {
+      const s = loadSettings();
+      optionList($("currencyFrom"), currencies, s.currencyFrom || "HKD");
+      optionList($("currencyTo"), currencies, s.currencyTo || "JPY");
+      $("currencyAmount").value = s.currencyAmount || "100";
+      $("manualRate").value = s.manualRate || "";
+      $("rateSource").value = s.rateSource || "frankfurter";
+      document.querySelectorAll('input[name="rateMode"]').forEach(r => {
+        r.checked = r.value === (s.rateMode || "auto");
+        r.addEventListener("change", () => {
+          $("manualRateWrap").classList.toggle("hidden", getRateMode() !== "manual");
+          convertCurrency();
+        });
+      });
+      $("manualRateWrap").classList.toggle("hidden", getRateMode() !== "manual");
+
+      ["currencyAmount", "currencyFrom", "currencyTo", "manualRate", "rateSource"].forEach(id => {
+        $(id).addEventListener("change", convertCurrency);
+      });
+      $("convertCurrency").addEventListener("click", convertCurrency);
+      $("swapCurrency").addEventListener("click", () => {
+        const from = $("currencyFrom").value;
+        $("currencyFrom").value = $("currencyTo").value;
+        $("currencyTo").value = from;
+        convertCurrency();
+      });
+      $("clearCurrency").addEventListener("click", () => {
+        $("currencyAmount").value = "";
+        $("currencyResult").textContent = "—";
+        $("currencyFormula").textContent = "—";
+      });
+      renderHistory();
+      convertCurrency();
+    }
+
+    initTabs();
+    initLength();
+    initCurrency();
+  </script>
+</body>
+</html>
